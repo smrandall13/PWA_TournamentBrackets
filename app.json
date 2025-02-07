@@ -1,0 +1,35 @@
+{
+	"name": "App Template",
+	"icon": "/icons/app-icon.png",
+	"version": "1.0.1",
+	"defaultPage": "home",
+	"defaultTheme": "Dark",
+	"defaultFont": "Nunito",
+
+	"copyright": "&copy; 2025 Shaun Randall",
+
+	"displayMenu": true,
+	"displayHome": true,
+	"displaySettings": true,
+
+	"allowInstall": true,
+
+	"pages": [
+		{
+			"id": "appinfo",
+			"name": "App Info",
+			"html": "/pages/appinfo.html",
+			"style": "/pages/appinfo.css",
+			"script": "/pages/appinfo.js",
+			"icon": "/pages/question-white.png"
+		},
+		{
+			"id": "appdata",
+			"name": "App Data",
+			"html": "/pages/appdata.html",
+			"style": "/pages/appdata.css",
+			"script": "/pages/appdata.js",
+			"icon": "/pages/question-white.png"
+		}
+	]
+}
