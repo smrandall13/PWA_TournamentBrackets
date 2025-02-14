@@ -379,6 +379,51 @@ const APP = {
 	},
 };
 
+const POPUP = {
+	show: function (popupID) {
+		if (isEmpty(popupID)) return;
+		const popup = document.getElementById(popupID);
+		if (popup.classList.contains('app-hidden')) {
+			popup.classList.remove('app-hidden');
+			setTimeout(() => (popup.style.opacity = 1), 100);
+
+			// Close Button
+			const closeButton = popup.getElementsByClassName('app-popup-close')[0];
+			if (closeButton) {
+				closeButton.addEventListener('click', () => POPUP.hide(popupID));
+			}
+		}
+	},
+	hide: function (popupID) {
+		if (isEmpty(popupID)) return;
+		const popup = document.getElementById(popupID);
+		console.log('P', popupID, popup);
+		if (!popup.classList.contains('app-hidden')) {
+			popup.style.opacity = 0;
+			setTimeout(() => popup.classList.add('app-hidden'), 300);
+		}
+	},
+	toggle: function (popupID) {
+		if (isEmpty(popupID)) return;
+		const popup = document.getElementById(popupID);
+		if (!popup.classList.contains('app-hidden')) {
+			POPUP.hide(popupID);
+		} else {
+			POPUP.show(popupID);
+		}
+	},
+	close: function (popupID) {
+		if (isEmpty(popupID)) {
+			const popups = document.getElementsByClassName('app-popup');
+			for (let i = 0; i < popups.length; i++) {
+				POPUP.hide(popups[i].id);
+			}
+		} else {
+			POPUP.hide(popupID);
+		}
+	},
+};
+
 const NOTIFY = {
 	send: function (title = '', message = '') {
 		if (Notification.permission === 'granted') {

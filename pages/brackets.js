@@ -574,7 +574,7 @@ var BRACKET = {
 				</div>
 
 				<div id='bracket-details' class='flex-column app-block app-hidden app-popup' style='margin:0;opacity:0;'>
-					<div class='app-popup-head'> Edit Bracket<div id='bracket-edit-close' class='app-popup-close'></div></div>
+					<div class='app-popup-head'> Edit Bracket<div class='app-popup-close'></div></div>
 					<div class='app-popup-body'>${BRACKET.bracket.form(bracket.id)}</div>
 					<div class='app-popup-controls'>
 						<div id='bracket-update' class='app-button app-button-small' style='min-width:100px;'>Save</div>
@@ -589,34 +589,10 @@ var BRACKET = {
 			backButton.addEventListener('click', () => {
 				BRACKET.home();
 			});
-
-			// Edit Toggle
-			const showEdit = () => {
-				const editPopup = document.getElementById('bracket-details');
-				if (editPopup.classList.contains('app-hidden')) {
-					editPopup.classList.remove('app-hidden');
-					setTimeout(() => (editPopup.style.opacity = 1), 100);
-				}
-			};
-			const hideEdit = () => {
-				const editPopup = document.getElementById('bracket-details');
-				if (!editPopup.classList.contains('app-hidden')) {
-					editPopup.style.opacity = 0;
-					setTimeout(() => editPopup.classList.add('app-hidden'), 300);
-				}
-			};
 			const editButton = document.getElementById('brackets-edit');
 			editButton.addEventListener('click', () => {
-				const editPopup = document.getElementById('bracket-details');
-				if (editPopup.classList.contains('app-hidden')) {
-					showEdit();
-				} else {
-					hideEdit();
-				}
+				POPUP.toggle('bracket-details');
 			});
-
-			const closeButton = document.getElementById('bracket-edit-close');
-			closeButton.addEventListener('click', hideEdit);
 
 			// Inputs
 			BRACKET.setInputs();
