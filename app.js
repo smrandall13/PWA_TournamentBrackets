@@ -1,5 +1,9 @@
+const appContent = document.getElementById('app-content');
 const APP = {
 	data: {},
+	timeouts: [],
+	intervals: [],
+	executions: [],
 	settings: { page: '', theme: '', font: '' },
 	page: {
 		current: '',
@@ -79,8 +83,10 @@ const APP = {
 				STORAGE.set('app-page', pageName);
 			}
 
-			document.getElementById('page-' + pageName).classList.add('active'); // Add Active Class to Page On Menu
-			APP.menu.toggle(2); // Close Menu
+			if (APP.data.displayMenu === true) {
+				document.getElementById('page-' + pageName).classList.add('active'); // Add Active Class to Page On Menu
+				APP.menu.toggle(2); // Close Menu
+			}
 		},
 		reset: function () {
 			// Remove previous styles
@@ -96,69 +102,114 @@ const APP = {
 			const contentElement = document.getElementById('app-content-container');
 			if (contentElement) contentElement.innerHTML = '';
 
+			if (APP.executions && APP.executions.length && APP.executions.length > 0) {
+				APP.executions.forEach((execute, index) => {
+					if (isFunction(execute)) {
+						execute();
+					}
+					if (index == APP.executions.length - 1) {
+						APP.executions = [];
+					}
+				});
+			}
+
 			APP.page.current = '';
 		},
 	},
 	menu: {
 		toggle: function (menuState = 0) {
 			const menu = document.getElementById('app-menu');
-			const toggle = document.getElementById('app-menu-toggle');
-			const back = document.getElementById('app-menu-back');
 
-			if (menuState === 0) {
-				if (menu.classList.contains('app-menu-closed')) {
-					menuState = 1;
-				} else {
-					menuState = 2;
+			if (menu) {
+				const toggle = document.getElementById('app-menu-toggle');
+				const back = document.getElementById('app-menu-back');
+				if (menuState === 0) {
+					if (menu.classList.contains('app-menu-closed')) {
+						menuState = 1;
+					} else {
+						menuState = 2;
+					}
 				}
-			}
 
-			if (menuState === 1) {
-				menu.classList.remove('app-menu-closed');
-				toggle.classList.remove('app-menu-closed');
-				back.classList.remove('app-menu-closed');
-			} else {
-				menu.classList.add('app-menu-closed');
-				toggle.classList.add('app-menu-closed');
-				back.classList.add('app-menu-closed');
+				if (menuState === 1) {
+					menu.classList.remove('app-menu-closed');
+					toggle.classList.remove('app-menu-closed');
+					back.classList.remove('app-menu-closed');
+				} else {
+					menu.classList.add('app-menu-closed');
+					toggle.classList.add('app-menu-closed');
+					back.classList.add('app-menu-closed');
+				}
 			}
 		},
 		init: function () {
 			if (APP.data && APP.data.displayMenu === true) {
+				let menuBack = document.getElementById('app-menu-back');
+				if (!menuBack) {
+					menuBack = document.createElement('div');
+					menuBack.id = 'app-menu-back';
+					appContent.insertAdjacentElement('beforebegin', menuBack);
+				}
+
+				let menu = document.getElementById('app-menu');
+				if (!menu) {
+					menu = document.createElement('aside');
+					menu.id = 'app-menu';
+					menuBack.insertAdjacentElement('afterend', menu);
+				}
+
+				// Main Menu Content
+				let menuContent = `<h2 id="app-menu-header">Menu<div id="app-menu-toggle" class="menu-toggle"><div></div></div></h2><div id="app-menu-content">`;
+
 				// Home
 				if (APP.data.displayHome) {
-					document.getElementById('app-menu-home').classList.remove('app-hidden');
+					menuContent += `<div id="app-menu-home" class="app-menu-list">
+									<div id="page-home" class="app-menu-page active" onclick="APP.page.go('home')">
+										<div class="app-menu-page-icon app-icon-home"></div>
+										<div class="app-menu-page-title">Home</div>
+									</div>
+								</div>`;
 				}
 
-				// Settings
-				if (APP.data.displaySettings) {
-					document.getElementById('app-menu-settings').classList.remove('app-hidden');
-				}
-
+				menuContent += `<div id="app-page-list" class="app-menu-list">`;
 				// Pages
 				if (APP.data && APP.data.pages) {
-					let pageData = '';
 					APP.data.pages.forEach((page) => {
-						pageData += `<div id="page-${page.id}" class="app-menu-page" onclick="APP.page.go('${page.id}')">`;
+						let pageData = `<div id="page-${page.id}" class="app-menu-page" onclick="APP.page.go('${page.id}')">`;
 						if (!isEmpty(page.icon)) {
 							pageData += `<div class="app-menu-page-icon" style='background-image: url("${page.icon}")'></div>`;
 						}
 						pageData += `<div class="app-menu-page-title">${page.name}</div>`;
 						pageData += `</div>`;
-					});
 
-					const pageList = document.getElementById('app-page-list');
-					pageList.innerHTML = pageData;
+						menuContent += pageData;
+					});
 				}
+				menuContent += `</div>`;
+
+				// Settings
+				if (APP.data.displaySettings) {
+					menuContent += `<div id="app-menu-settings" class="app-menu-list">
+									<div id="page-settings" class="app-menu-page active" onclick="APP.page.go('settings')">
+										<div class="app-menu-page-icon app-icon-settings"></div>
+										<div class="app-menu-page-title">Settings</div>
+									</div>
+								</div>`;
+				}
+
+				// Copyright
+				if (!isEmpty(APP.data.copyright)) {
+					menuContent += `<div id="app-copyright">${APP.data.copyright}</div>`;
+				}
+
+				// Add Content To Menu
+				menu.innerHTML = menuContent + '</div>';
 
 				// Toggle
 				const toggleButton = document.getElementById('app-menu-toggle');
 				toggleButton.addEventListener('click', () => {
 					APP.menu.toggle();
 				});
-			} else {
-				document.getElementById('app-menu').classList.add('app-hidden');
-				document.getElementById('app-menu-back').classList.add('app-hidden');
 			}
 		},
 	},
@@ -172,7 +223,6 @@ const APP = {
 		],
 
 		apply: function (fontName) {
-			console.log('F1', fontName);
 			if (isEmpty(fontName)) {
 				fontName = APP.font.fonts[0].name;
 			}
@@ -225,17 +275,21 @@ const APP = {
 			}
 		},
 		handle: function () {
+			let deferredPrompt;
 			const installBtn = document.getElementById('app-install');
 
 			window.addEventListener('beforeinstallprompt', (e) => {
 				e.preventDefault();
-				APP.pwa.prompt = e;
+				deferredPrompt = e;
 			});
 
 			installBtn.addEventListener('click', () => {
-				APP.pwa.prompt.prompt();
-				APP.pwa.prompt.userChoice.then((choice) => {
-					APP.pwa.prompt = null;
+				deferredPrompt.prompt(); // Show Install Banner
+				deferredPrompt.userChoice.then((choice) => {
+					if (choice.outcome === 'accepted') {
+						APP.pwa.installed();
+					}
+					deferredPrompt = null;
 					location.reload();
 				});
 			});
@@ -257,6 +311,9 @@ const APP = {
 		localStorage.clear();
 		location.reload();
 		navigator.serviceWorker.getRegistrations();
+	},
+	execute: function (callback) {
+		APP.executions.push(callback);
 	},
 	init: async function (callback) {
 		try {
@@ -286,17 +343,10 @@ const APP = {
 			APP.theme.apply(themeName);
 
 			// App Info
-			document.getElementById('app-name').innerHTML = APP.data.name;
+			document.getElementById('app-header-name').innerHTML = APP.data.name;
 			document.getElementById('app-title').innerHTML = APP.data.name;
 			document.getElementById('app-favicon').href = APP.data.icon;
-			document.getElementById('app-icon').src = APP.data.icon;
-
-			// Copywrite
-			if (!isEmpty(APP.data.copyright)) {
-				const copyright = document.getElementById('app-copyright');
-				copyright.innerHTML = APP.data.copyright;
-				copyright.classList.remove('app-hidden');
-			}
+			document.getElementById('app-header-icon').src = APP.data.icon;
 
 			// Check Page
 			let pageName = STORAGE.get('app-page');
@@ -312,7 +362,6 @@ const APP = {
 			if (pageName !== 'home' && pageName !== 'settings' && (isEmpty(pageName) || !APP.data.pages.find((p) => p.id === pageName))) {
 				pageName = APP.data.pages[0].id;
 			}
-			APP.page.go(pageName);
 
 			// Menu Initialize
 			APP.menu.init();
@@ -321,11 +370,111 @@ const APP = {
 			if (APP.data.allowInstall) {
 				APP.pwa.init();
 			}
+			APP.page.go(pageName);
 
 			callback();
 		} catch (error) {
 			LOG.error('Error loading HTML:' + error);
 		}
+	},
+};
+
+const NOTIFY = {
+	send: function (title = '', message = '') {
+		if (Notification.permission === 'granted') {
+			new Notification(title, { body: message });
+		} else if (Notification.permission !== 'denied') {
+			NOTIFY.init(() => {
+				NOTIFY.send(title, message);
+			});
+		}
+	},
+	init: function (callback) {
+		if ('Notification' in window && APP.data.allowNotifications === true) {
+			Notification.requestPermission().then((permission) => {
+				if (permission === 'granted') {
+					if (isFunction(callback)) callback();
+					LOG.message('Notification permission granted.');
+				} else {
+					LOG.message('Notification permission denied.');
+				}
+			});
+		} else {
+			LOG.message('Notifications are not supported in this browser.');
+		}
+	},
+};
+
+const MESSAGE = {
+	show: function (title = '', message = '', className = '', callback = null) {
+		if (document.getElementById('app-message')) {
+			document.getElementById('app-message').remove();
+		}
+
+		if (!isEmpty(message)) {
+			// Message Back
+			const appMessageBack = document.createElement('div');
+			appMessageBack.id = 'app-message-back';
+			appMessageBack.style.opacity = 0;
+			appContent.appendChild(appMessageBack);
+
+			const appMessage = document.createElement('div');
+			appMessage.id = 'app-message';
+			appMessage.style.opacity = 0;
+			if (!isEmpty(className)) {
+				appMessage.classList.add(className);
+			}
+
+			if (isEmpty(title)) {
+				title = '';
+			}
+			appMessage.innerHTML = `<div id="app-message-title"><div id='app-message-title-text'>${title}</div><div id="app-message-close"></div></div><div id="app-message-content">${message}</div>`;
+			appContent.appendChild(appMessage);
+			setTimeout(() => {
+				appMessageBack.style.opacity = 0.75;
+				appMessage.style.opacity = 1;
+				isFunction(callback) && callback();
+			}, 200);
+
+			document.getElementById('app-message-close').addEventListener('click', () => {
+				MESSAGE.hide();
+			});
+			document.getElementById('app-message-back').addEventListener('click', () => {
+				MESSAGE.hide();
+			});
+		}
+	},
+	confirm: function (title = '', message = '', confirmFunction = null) {
+		if (!isEmpty(message) && !isEmpty(confirmFunction)) {
+			message += "<div id='app-message-controls'><button id='app-message-confirm' class='app-button app-button-caution'>Yes</button><button id='app-message-cancel' class='app-button'>No</button></div>";
+			MESSAGE.show(title, message, '', () => {
+				const confirmButton = document.getElementById('app-message-confirm');
+				confirmButton.addEventListener('click', () => {
+					MESSAGE.hide();
+					confirmFunction();
+				});
+
+				const cancelButton = document.getElementById('app-message-cancel');
+				cancelButton.addEventListener('click', () => MESSAGE.hide());
+			});
+		}
+	},
+	error: function (message) {
+		MESSAGE.show('Error', message, 'app-message-caution');
+	},
+	alert: function (title, message) {
+		MESSAGE.show(title, message, 'app-message-caution');
+	},
+	hide: function () {
+		const appMessageBack = document.getElementById('app-message-back');
+		const appMessage = document.getElementById('app-message');
+
+		appMessageBack.style.opacity = 0;
+		appMessage.style.opacity = 0;
+		setTimeout(() => {
+			appMessageBack.remove();
+			appMessage.remove();
+		}, 1000);
 	},
 };
 
@@ -356,16 +505,69 @@ const LOG = {
 };
 
 // Functions
-function isEmpty(value) {
-	let varEmpty = false;
-	if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
-		varEmpty = true;
-	} else if ((Array.isArray(value) && value.length === 0) || (typeof value === 'object' && Object.keys(value).length === 0)) {
-		varEmpty = true;
-	}
+const isEmpty = (value) => value === undefined || value === null || (typeof value === 'string' && value.trim() === '') || (Array.isArray(value) && value.length === 0) || (typeof value === 'object' && Object.keys(value).length === 0);
+const ifEmpty = (variable, value) => (isEmpty(variable) ? value : variable);
 
-	return varEmpty;
-}
+const isFunction = (variable) => typeof variable === 'function';
+
+const capitalizeFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+const getValue = (inputID) => {
+	if (!isEmpty(inputID)) {
+		const input = document.getElementById(inputID);
+		if (input && input.id == inputID && input.value) {
+			return input.value;
+		} else {
+			return '';
+		}
+	}
+	return '';
+};
+
+const formatDate = (variable = '', format = '') => {
+	if (isEmpty(variable)) return '';
+
+	const date = new Date(variable);
+	const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+	const day = date.getDate().toString().padStart(2, '0'); // Ensures two digits
+	const monthIndex = (date.getMonth() + 1).toString().padStart(2, '0'); // Ensures two digits
+	const year = date.getFullYear();
+
+	if (isEmpty(format)) {
+		// Default: Long format (e.g., "Feb 14, 2025")
+		return `${monthNames[date.getMonth()]} ${day}, ${year}`;
+	} else {
+		// Format: YYYY-MM-DD with zero-padded values
+		return format.replace('YYYY', year).replace('MM', monthIndex).replace('DD', day);
+	}
+};
+
+const formatTime = (variable = '', format = '') => {
+	if (!variable) return ''; // Ensures variable is not empty or undefined
+
+	const date = new Date(variable);
+	if (isNaN(date.getTime())) return ''; // Handles invalid dates
+
+	const hours = date.getHours();
+	const minutes = date.getMinutes();
+	const seconds = date.getSeconds();
+	const ampm = hours >= 12 ? 'PM' : 'AM';
+	const hours12 = hours % 12 || 12;
+
+	// Ensure format is a string to prevent errors
+	format = String(format);
+
+	if (!format) {
+		return `${hours12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+	} else {
+		return format
+			.replace('HH', (format.includes('AMPM') ? hours12 : hours).toString().padStart(2, '0'))
+			.replace('mm', minutes.toString().padStart(2, '0'))
+			.replace('ss', seconds.toString().padStart(2, '0'))
+			.replace('AMPM', ampm);
+	}
+};
 
 // Initialize PWA functionality
 document.addEventListener('DOMContentLoaded', () => {

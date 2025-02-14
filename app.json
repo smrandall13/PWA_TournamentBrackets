@@ -1,35 +1,27 @@
 {
-	"name": "App Template",
+	"name": "Bracket It",
 	"icon": "/icons/app-icon.png",
-	"version": "1.0.1",
-	"defaultPage": "home",
+	"version": "1.0.0",
+	"defaultPage": "brackets",
 	"defaultTheme": "Dark",
 	"defaultFont": "Nunito",
 
 	"copyright": "&copy; 2025 Shaun Randall",
 
-	"displayMenu": true,
-	"displayHome": true,
-	"displaySettings": true,
+	"displayMenu": false,
+	"displayHome": false,
+	"displaySettings": false,
 
 	"allowInstall": true,
+	"allowNotifications": false,
 
 	"pages": [
 		{
-			"id": "appinfo",
-			"name": "App Info",
-			"html": "/pages/appinfo.html",
-			"style": "/pages/appinfo.css",
-			"script": "/pages/appinfo.js",
-			"icon": "/pages/question-white.png"
-		},
-		{
-			"id": "appdata",
-			"name": "App Data",
-			"html": "/pages/appdata.html",
-			"style": "/pages/appdata.css",
-			"script": "/pages/appdata.js",
-			"icon": "/pages/question-white.png"
+			"id": "brackets",
+			"name": "Brackets",
+			"html": "/pages/brackets.html",
+			"style": "/pages/brackets.css",
+			"script": "/pages/brackets.js"
 		}
 	]
 }
