@@ -59,28 +59,28 @@ var BRACKET = {
 					winningTeam = bracket.teams.find((team) => team.id == winningTeamId).name;
 				}
 
-				openRows += `  <div class='brackets-table-row'>
-								<div class='brackets-table-cell'><div id='bracket-${bracket.id}' class='brackets-details-button app-button bracket-button-view'></div></div>
-								<div class='brackets-table-cell'>${bracket.title}</div>
-								<div class='brackets-table-cell'>${bracket.game}</div>
-								<div class='brackets-table-cell'>${winningTeam}</div>
-								<div class='brackets-table-cell'>${startDate}</div>
+				openRows += `  <div class='app-table-row'>
+								<div class='app-table-cell'><div id='bracket-${bracket.id}' class='brackets-details-button app-button bracket-button-view'></div></div>
+								<div class='app-table-cell'>${bracket.title}</div>
+								<div class='app-table-cell'>${bracket.game}</div>
+								<div class='app-table-cell'>${winningTeam}</div>
+								<div class='app-table-cell'>${startDate}</div>
 							</div>`;
 			}
 
 			openContent += `<div class='brackets-container' style='justify-content:center;align-items:center;'>
-							<div class='brackets-table'>
-								<div class='brackets-table-header'>
-									<div class='brackets-table-cell' style='width:50px;'> </div>
-									<div class='brackets-table-cell' style='width:170px;'>Title</div>
-									<div class='brackets-table-cell' style='width:100px;'>Game</div>
-									<div class='brackets-table-cell' style='width:170px;'>Leader</div>
-									<div class='brackets-table-cell' style='width:170px;'>Started</div>
+							<div class='app-table'>
+								<div class='app-table-header'>
+									<div class='app-table-cell' style='width:50px;'> </div>
+									<div class='app-table-cell' style='width:170px;'>Title</div>
+									<div class='app-table-cell' style='width:100px;'>Game</div>
+									<div class='app-table-cell' style='width:170px;'>Leader</div>
+									<div class='app-table-cell' style='width:170px;'>Started</div>
 								</div>${openRows}
 							</div>
 						</div>`;
 		} else {
-			openContent += `<div class='brackets-container'><div class='brackets-group'>No Ongoing Brackets</div></div>`;
+			openContent += `<div class='brackets-container'><div class='app-box-group'>No Ongoing Brackets</div></div>`;
 		}
 		openContent += `</div>`;
 
@@ -97,39 +97,39 @@ var BRACKET = {
 				endDate = formatDate(endDate) + ' ' + formatTime(endDate);
 				let winner = bracket.teams.find((team) => team.id == bracket.winner).name;
 
-				closedRows += `  <div class='brackets-table-row'>
-								<div class='brackets-table-cell'><div id='bracket-${bracket.id}' class='brackets-details-button app-button bracket-button-view'></div></div>
-								<div class='brackets-table-cell'>${bracket.title}</div>
-								<div class='brackets-table-cell'>${bracket.game}</div>
-								<div class='brackets-table-cell'>${winner}</div>
-								<div class='brackets-table-cell'>${startDate}</div>
-								<div class='brackets-table-cell'>${endDate}</div>
+				closedRows += `  <div class='app-table-row'>
+								<div class='app-table-cell'><div id='bracket-${bracket.id}' class='brackets-details-button app-button bracket-button-view'></div></div>
+								<div class='app-table-cell'>${bracket.title}</div>
+								<div class='app-table-cell'>${bracket.game}</div>
+								<div class='app-table-cell'>${winner}</div>
+								<div class='app-table-cell'>${startDate}</div>
+								<div class='app-table-cell'>${endDate}</div>
 							</div>`;
 			}
 			closedContent += `<div class='brackets-container' style='justify-content:center;align-items:center;'>
-							<div class='brackets-table'>
-								<div class='brackets-table-header'>
-									<div class='brackets-table-cell' style='width:50px;'> </div>
-									<div class='brackets-table-cell' style='width:170px;'>Title</div>
-									<div class='brackets-table-cell' style='width:100px;'>Game</div>
-									<div class='brackets-table-cell' style='width:170px;'>Winner</div>
-									<div class='brackets-table-cell' style='width:170px;'>Started</div>
-									<div class='brackets-table-cell' style='width:170px;'>Finished</div>
+							<div class='app-table'>
+								<div class='app-table-header'>
+									<div class='app-table-cell' style='width:50px;'> </div>
+									<div class='app-table-cell' style='width:170px;'>Title</div>
+									<div class='app-table-cell' style='width:100px;'>Game</div>
+									<div class='app-table-cell' style='width:170px;'>Winner</div>
+									<div class='app-table-cell' style='width:170px;'>Started</div>
+									<div class='app-table-cell' style='width:170px;'>Finished</div>
 								</div>${closedRows}
 							</div>
 						</div>`;
 		} else {
-			closedContent += `<div class='brackets-container'><div class='brackets-group'>No Finished Brackets</div></div>`;
+			closedContent += `<div class='brackets-container'><div class='app-box-group'>No Finished Brackets</div></div>`;
 		}
 		closedContent += `</div>`;
 
 		// Create Bracket - Bracket Create Form
-		// <label class='brackets-row-label' for='bracket-title'>Game</label><div class='brackets-row-value'><input id='bracket-game' type='text' list='list-brackets-game'></div><div class="brackets-row-note">Game Played</div>;
+		// <label class='app-box-label' for='bracket-title'>Game</label><div class='app-box-value'><input id='bracket-game' type='text' list='list-brackets-game'></div><div class="app-box-note">Game Played</div>;
 
 		let createContent = `<div id='brackets-create' class='flex-column app-hidden app-block' style='margin:0;'>
 			<h2 id='brackets-create' style='margin:24px 0;'>Create Bracket</h2>
-			<div class='brackets-row-note'>* Required</div>${BRACKET.bracket.form()}
-			<div class='brackets-row-span' style='margin-top:16px;'><div id='brackets-bracket-create' class='app-button'>Create Bracket</div></div>`;
+			<div class='app-box-note'>* Required</div>${BRACKET.bracket.form()}
+			<div class='app-box-span' style='margin-top:16px;'><div id='bracket-create' class='app-button'>Create Bracket</div></div>`;
 		createContent += `</div>`;
 
 		content += openContent + closedContent + createContent;
@@ -175,7 +175,6 @@ var BRACKET = {
 			);
 		}
 
-		document.getElementById('brackets-bracket-create').addEventListener('click', () => BRACKET.bracket.update(0));
 		BRACKET.setInputs();
 	},
 	player: {
@@ -220,17 +219,29 @@ var BRACKET = {
 	setInputs: function () {
 		const bracketID = STORAGE.get('bracket-id');
 
+		// Create
+		const createButton = document.getElementById('bracket-create');
+		if (createButton) {
+			createButton.addEventListener('click', () => {
+				BRACKET.bracket.update(0);
+			});
+		}
+
 		// Delete
 		const deleteButton = document.getElementById('bracket-delete');
-		deleteButton.addEventListener('click', () => {
-			BRACKET.bracket.delete(bracketID, 0);
-		});
+		if (deleteButton) {
+			deleteButton.addEventListener('click', () => {
+				BRACKET.bracket.delete(bracketID, 0);
+			});
+		}
 
 		// Update
 		const updateButton = document.getElementById('bracket-update');
-		updateButton.addEventListener('click', () => {
-			BRACKET.bracket.update(bracketID);
-		});
+		if (updateButton) {
+			updateButton.addEventListener('click', () => {
+				BRACKET.bracket.update(bracketID);
+			});
+		}
 
 		// Add Team
 		const addTeamButton = document.getElementById('brackets-add-team');
@@ -240,12 +251,12 @@ var BRACKET = {
 			const inputs = list.getElementsByClassName('app-input-color');
 			const teamID = inputs.length + 1;
 			const teamColor = BRACKET.colors[teamID - 1];
-			let newTeam = `<label class="brackets-row-label" for="bracket-team-${teamID}">Team ${teamID}</label>`;
-			newTeam += `<div class="brackets-row-value">
+			let newTeam = `<label class="app-box-label" for="bracket-team-${teamID}">Team ${teamID}</label>`;
+			newTeam += `<div class="app-box-value">
 				<input id="bracket-team-1-color" value="${teamColor}" type="color" class="app-input-color">
 				<input id="bracket-team-1" value="" placeholder="Team ${teamID}" type="text" list="list-brackets-team" class="app-input">
 			</div>
-			<div class="brackets-row-note"><div id="braket-team-${teamID}-add" class="brackets-member-add">+ Add Members</div></div>`;
+			<div class="app-box-note"><div id="braket-team-${teamID}-add" class="brackets-member-add">+ Add Members</div></div>`;
 
 			list.innerHTML += newTeam;
 		});
@@ -429,71 +440,69 @@ var BRACKET = {
 				for (let i = 0; i < bracketTeams.length; i++) {
 					const team = bracketTeams[i];
 
-					let teamInfo = `<label class='brackets-row-label' for='bracket-team-1'>Team ${i + 1}</label><div class='brackets-row-value'><input id='bracket-team-${i + 1}-color' value='${team.color}' type='color' class='app-input-color'><input id='bracket-team-${i + 1}' value='${team.name}' placeholder='Team ${i + 1}' type='text' list='list-brackets-team' required class='app-input'></div>`;
+					let teamInfo = `<label class='app-box-label' for='bracket-team-1'>Team ${i + 1}</label><div class='app-box-value'><input id='bracket-team-${i + 1}-color' value='${team.color}' type='color' class='app-input-color'><input id='bracket-team-${i + 1}' value='${team.name}' placeholder='Team ${i + 1}' type='text' list='list-brackets-team' required class='app-input'></div>`;
 
 					if (team.members.length > 0) {
-						teamInfo += `<div class='brackets-box brackets-row-span'>`;
+						teamInfo += `<div class='app-box-content app-box-span'>`;
 						for (let j = 0; j < bracketTeams[i].members.length; j++) {
 							let memberName = bracketTeams[i].members[j];
-							teamInfo += `<div class='brackets-row-label'>Member ${j + 1}</div><div class='brackets-row-value'><input id='bracket-team-${i + 1}-member-${j + 1}' value='${memberName}' placeholder='Member ${j + 1}' type='text' list='list-brackets-member' class='app-input'></div>`;
+							teamInfo += `<div class='app-box-label'>Member ${j + 1}</div><div class='app-box-value'><input id='bracket-team-${i + 1}-member-${j + 1}' value='${memberName}' placeholder='Member ${j + 1}' type='text' list='list-brackets-member' class='app-input'></div>`;
 						}
 						teamInfo += `</div>`;
 					}
 
-					teamInfo += `<div class='brackets-row-note'><div id='braket-team-${i + 1}-add' class='brackets-member-add'>+ Add Members</div></div>`;
+					teamInfo += `<div class='app-box-note'><div id='braket-team-${i + 1}-add' class='brackets-member-add'>+ Add Members</div></div>`;
 
 					teamList += teamInfo;
 				}
 			}
 
-			// <label class='brackets-row-label' for='bracket-date'>Date</label><div class='brackets-row-value'><input id='bracket-date' type='date' value="${formatDate(bracketDate, 'YYYY-MM-DD')}"></div> <div class='brackets-row-note'>Date the Event is Held</div>
+			// <label class='app-box-label' for='bracket-date'>Date</label><div class='app-box-value'><input id='bracket-date' type='date' value="${formatDate(bracketDate, 'YYYY-MM-DD')}"></div> <div class='app-box-note'>Date the Event is Held</div>
 
-			let content = `<div class='brackets-container'>
+			let content = `<div class='app-box-wrapper'>
 					<input id='bracket-id' type='hidden' value='${bracketID}'>
-					<div class='brackets-group'><div class='brackets-box'>
-						<label class='brackets-row-label' for='bracket-title'>Title</label><div class='brackets-row-value'><input id='bracket-title' class='app-input' type='text' required list='list-brackets-title' value="${bracketTitle}"></div>
-						<div class='brackets-row-note'>Event Title used to identify the Bracket</div>
+					<div class='app-box-group no-border'><div class='app-box-content'>
+						<label class='app-box-label' for='bracket-title'>Title</label><div class='app-box-value'><input id='bracket-title' class='app-input' type='text' required list='list-brackets-title' value="${bracketTitle}"></div>
+						<div class='app-box-note'>Event Title used to identify the Bracket</div>
 
-						<label class='brackets-row-label' for='bracket-elimination'>E-Type</label><div class='brackets-row-value'><select id='bracket-elimination' >${eliminationOptions}</select></div>
-						<div class='brackets-row-note'>Elimination Type</div>
+						<label class='app-box-label' for='bracket-elimination'>E-Type</label><div class='app-box-value'><select id='bracket-elimination' >${eliminationOptions}</select></div>
+						<div class='app-box-note'>Elimination Type</div>
 
-						<label class='brackets-row-label' for='bracket-format'>Format</label><div class='brackets-row-value'><select id='bracket-format'>${formatOptions}</select></div>
-						<div class='brackets-row-note'>Match Format - Number of Games Per Match</div>
+						<label class='app-box-label' for='bracket-format'>Format</label><div class='app-box-value'><select id='bracket-format'>${formatOptions}</select></div>
+						<div class='app-box-note'>Match Format - Number of Games Per Match</div>
 					</div></div>
 
-					<div class='brackets-group'><div class='brackets-box'>
-						<label class='brackets-row-label' for='bracket-title'>Game</label><div class='brackets-row-value'><input id='bracket-game' class='app-input' type='text' list='list-brackets-game' value="${bracketGame}"></div>
-						<div class='brackets-row-note'>Event Game being played</div>
+					<div class='app-box-group no-border'><div class='app-box-content'>
+						<label class='app-box-label' for='bracket-title'>Game</label><div class='app-box-value'><input id='bracket-game' class='app-input' type='text' list='list-brackets-game' value="${bracketGame}"></div>
+						<div class='app-box-note'>Event Game being played</div>
 
-						<label class='brackets-row-label' for='bracket-organizer'>Organizer</label><div class='brackets-row-value'><input id='bracket-organizer' type='text' list='list-brackets-organizer' value="${bracketOrganizer}"></div>
-						<div class='brackets-row-note'>Person or Organization Hosting the Event</div>
+						<label class='app-box-label' for='bracket-organizer'>Organizer</label><div class='app-box-value'><input id='bracket-organizer' type='text' list='list-brackets-organizer' value="${bracketOrganizer}"></div>
+						<div class='app-box-note'>Person or Organization Hosting the Event</div>
 
-						<label class='brackets-row-label' for='bracket-location'>Location</label><div class='brackets-row-value'><input id='bracket-location' type='text' list='list-brackets-location' value="${bracketLocation}"></div>
-						<div class='brackets-row-note'>Location the Event is Held</div>
+						<label class='app-box-label' for='bracket-location'>Location</label><div class='app-box-value'><input id='bracket-location' type='text' list='list-brackets-location' value="${bracketLocation}"></div>
+						<div class='app-box-note'>Location the Event is Held</div>
 					</div></div>
 
 				</div>
 
-				<div class='brackets-break' style='margin:0 0 24px 0'></div>
+				<div class='app-box-wrapper'>
 
-				<div class='brackets-container'>
+					<div class='app-box-group no-border'><div class='app-box-group-title'>Rules</div><div class='app-box-content'>
+						<label class='app-box-label' for='bracket-rule-matchlimit'>Time Limit</label><div class='app-box-value'><input id='bracket-rule-matchlimit' type='number' min='0' step='1' value='${ruleLimit}'></div>
+						<div class='app-box-note'>Optional Time Limit for each match in Minutes</div>
 
-					<div class='brackets-group'><div class='brackets-group-title'>Rules</div><div class='brackets-box'>
-						<label class='brackets-row-label' for='bracket-rule-matchlimit'>Time Limit</label><div class='brackets-row-value'><input id='bracket-rule-matchlimit' type='number' min='0' step='1' value='${ruleLimit}'></div>
-						<div class='brackets-row-note'>Optional Time Limit for each match in Minutes</div>
+						<label class='app-box-label' for='bracket-rule-tiebreaker'>Tiebreaker</label><div class='app-box-value'><input id='bracket-rule-tiebreaker' type='text' value='${ruleTie}'></div>
+						<div class='app-box-note'>What to do in the event of a tiebreaker</div>
 
-						<label class='brackets-row-label' for='bracket-rule-tiebreaker'>Tiebreaker</label><div class='brackets-row-value'><input id='bracket-rule-tiebreaker' type='text' value='${ruleTie}'></div>
-						<div class='brackets-row-note'>What to do in the event of a tiebreaker</div>
+						<label class='app-box-label' for='bracket-rule-winconditions'>Win Conditions</label><div class='app-box-value'><input id='bracket-rule-winconditions' type='text' value='${ruleWin}'></div>
+						<div class='app-box-note'>What conditions determine a win</div>
 
-						<label class='brackets-row-label' for='bracket-rule-winconditions'>Win Conditions</label><div class='brackets-row-value'><input id='bracket-rule-winconditions' type='text' value='${ruleWin}'></div>
-						<div class='brackets-row-note'>What conditions determine a win</div>
-
-						<label class='brackets-row-label' for='bracket-rule-other'>Other Rules</label><div class='brackets-row-value'><textarea id='bracket-rule-other'>${ruleOther}</textarea></div>
-						<div class='brackets-row-note'>Other Rules to be Enforced</div>
+						<label class='app-box-label' for='bracket-rule-other'>Other Rules</label><div class='app-box-value'><textarea id='bracket-rule-other'>${ruleOther}</textarea></div>
+						<div class='app-box-note'>Other Rules to be Enforced</div>
 					</div></div>
 
-					<div class='brackets-group'><div class='brackets-group-title'>Teams / Players</div><div id='brackets-teams-list' class='brackets-box'>${teamList}</div>
-						<div class='brackets-row-span' style='margin-top:16px;'><div id='brackets-add-team' class='app-button app-button-small'>Add Team</div></div>
+					<div class='app-box-group no-border'><div class='app-box-group-title'>Teams / Players</div><div id='brackets-teams-list' class='app-box-content'>${teamList}</div>
+						<div class='app-box-span' style='margin-top:16px;'><div id='brackets-add-team' class='app-button app-button-small'>Add Team</div></div>
 					</div>
 				</div>`;
 
@@ -557,6 +566,9 @@ var BRACKET = {
 				return;
 			}
 
+			const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+			const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
 			// Load Bracket
 
 			const bracket = BRACKET.brackets.find((b) => b.id == bracketID);
@@ -570,7 +582,7 @@ var BRACKET = {
 				</h2>
 
 				<div id="bracket-visual">
-					<canvas id="bracketCanvas"></canvas>
+					<canvas id="bracket-canvas" width="${screenWidth}" height="${screenHeight}"></canvas>
 				</div>
 
 				<div id='bracket-details' class='flex-column app-block app-hidden app-popup' style='margin:0;opacity:0;'>
@@ -596,6 +608,87 @@ var BRACKET = {
 
 			// Inputs
 			BRACKET.setInputs();
+
+			// Canvas
+			const canvas = document.getElementById('bracket-canvas');
+			const ctx = canvas.getContext('2d');
+			let winner = 0;
+
+			const startX = 50;
+			const startY = 100;
+			const boxWidth = 120;
+			const boxHeight = 40;
+			const spacingY = 100;
+			const winnerX = startX + boxWidth + 100;
+			const winnerY = startY + spacingY / 2;
+
+			function drawBracket() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+				// Draw team boxes
+				bracket.teams.forEach((team, index) => {
+					let yPos = startY + index * spacingY;
+
+					// Draw box with white border and rounded corners
+					ctx.fillStyle = team.color;
+					ctx.strokeStyle = 'white';
+					ctx.lineWidth = 2;
+					ctx.beginPath();
+					ctx.rect(startX, yPos, boxWidth, boxHeight);
+					ctx.fill();
+					ctx.stroke();
+
+					// Draw text
+					ctx.fillStyle = 'white';
+					ctx.font = '16px Arial';
+					ctx.fillText(team.name, startX + 10, yPos + 25);
+				});
+
+				// Draw match lines
+				ctx.strokeStyle = 'white';
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.moveTo(startX + boxWidth, startY + 20);
+				ctx.lineTo(startX + boxWidth + 50, startY + 20);
+				ctx.lineTo(startX + boxWidth + 50, startY + spacingY + 20);
+				ctx.lineTo(startX + boxWidth, startY + spacingY + 20);
+				ctx.stroke();
+
+				// Draw winner box
+				let winnerColor = winner === 1 ? bracket.teams[0].color : winner === 2 ? bracket.teams[1].color : '#333';
+				ctx.fillStyle = winnerColor;
+				ctx.strokeStyle = 'white';
+				ctx.beginPath();
+				ctx.rect(winnerX, winnerY, boxWidth, boxHeight);
+				ctx.fill();
+				ctx.stroke();
+
+				// Draw winner text
+				ctx.fillStyle = 'white';
+				ctx.fillText(winner === 1 ? bracket.teams[0].name : winner === 2 ? bracket.teams[1].name : '', winnerX + 10, winnerY + 25);
+
+				// Connect match lines to winner box
+				ctx.beginPath();
+				ctx.moveTo(startX + boxWidth + 50, startY + 20 + spacingY / 2);
+				ctx.lineTo(winnerX, winnerY + boxHeight / 2);
+				ctx.stroke();
+			}
+
+			canvas.addEventListener('click', function (event) {
+				const rect = canvas.getBoundingClientRect();
+				const clickX = event.clientX - rect.left;
+				const clickY = event.clientY - rect.top;
+
+				const winnerX = startX + boxWidth + 100;
+				const winnerY = startY + spacingY / 2;
+
+				if (clickX >= winnerX && clickX <= winnerX + boxWidth && clickY >= winnerY && clickY <= winnerY + boxHeight) {
+					winner = (winner + 1) % 3;
+					drawBracket();
+				}
+			});
+
+			drawBracket();
 		},
 	},
 	unload: function () {

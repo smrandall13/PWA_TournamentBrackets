@@ -1,6 +1,6 @@
 {
 	"name": "Bracket It",
-	"icon": "/icons/app-icon.png",
+	"icon": "icons/app-icon.png",
 	"version": "1.0.0",
 	"defaultPage": "brackets",
 	"defaultTheme": "Dark",

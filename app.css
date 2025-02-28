@@ -61,6 +61,7 @@
 	--font-size-lg: 1.25rem;
 	--font-size-h1: 1.75rem;
 	--font-size-h2: 1.5rem;
+	--font-size-h3: 1.25rem;
 	--font-size-sm: 0.875rem;
 	--font-size-xsm: 0.75rem;
 	--line-height: 1.5;
@@ -714,7 +715,7 @@ body.theme-light select option textarea {
 #app-cover-image {
 	width: 200px;
 	height: 200px;
-	background-image: url(./icons/app-loadimg.png);
+	background-image: url(icons/app-loadimg.png);
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -836,6 +837,9 @@ body.theme-light select option textarea {
 	flex-wrap: wrap;
 	gap: 8px;
 }
+.app-box-wrapper + .app-box-wrapper {
+	margin-top: 8px;
+}
 .app-box-group {
 	border: var(--border);
 	border-radius: var(--border-radius);
@@ -844,6 +848,21 @@ body.theme-light select option textarea {
 	flex: 1;
 	width: auto;
 	display: inline-block;
+}
+.app-box-group + .app-box-group {
+	/* margin-left: 8px; */
+}
+.app-box-group-title {
+	font-size: var(--font-size-h3);
+	width: 100%;
+	min-width: 100%;
+	text-align: left;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 4px;
+	gap: 8px;
 }
 .app-box-content {
 	display: grid;
@@ -881,8 +900,25 @@ body.theme-light select option textarea {
 	justify-content: flex-start;
 	min-height: 24px;
 	line-height: 24px;
+	gap: 4px;
 }
 
+.app-box-value input:not([type='color']),
+.app-box-value select,
+.app-box-value textarea {
+	flex: 1;
+}
+
+.app-box-span {
+	grid-column: span 2;
+}
+.app-box-note {
+	grid-column: span 2;
+	font-size: var(--font-size-xsm);
+	color: var(--color-muted);
+	text-align: right;
+	font-style: italic;
+}
 /* Table */
 .app-table {
 	display: table;
@@ -1065,7 +1101,7 @@ body.theme-light select option textarea {
 	width: 100%;
 	min-width: 100%;
 	padding: 8px 0;
-	max-height: calc(100vh - 200px);
+	max-height: calc(100vh - 300px) !important;
 }
 .app-popup-controls {
 	height: 40px;
@@ -1152,6 +1188,15 @@ body.theme-light select option textarea {
 
 .color-caution {
 	color: var(--color-caution);
+}
+
+.no-border {
+	border: 0;
+}
+
+.selectable {
+	cursor: pointer;
+	user-select: all;
 }
 
 /* Responsive Behavior */
