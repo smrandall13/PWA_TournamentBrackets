@@ -811,7 +811,11 @@ var BRACKET = {
 				ctx.strokeStyle = strokeColor;
 				ctx.lineWidth = lineWidth;
 				ctx.beginPath();
-				ctx.rect(xPos, yPos, boxWidth, boxHeight);
+				if (ctx.roundRect) {
+					ctx.roundRect(xPos, yPos, boxWidth, boxHeight, 4);
+				} else {
+					ctx.rect(xPos, yPos, boxWidth, boxHeight);
+				}
 				ctx.fill();
 				ctx.stroke();
 
