@@ -14,6 +14,7 @@ var BRACKET = {
 		// Brackets - Closed
 		const closedBrackets = BRACKET.brackets.filter((b) => b.status == 'finished');
 
+		BRACKET.settings.bracket = null;
 		let content = `<h1>Tournament Brackets</h1>`;
 		content += `<div class='brackets-header'>
 					<div id='brackets-button-ongoing' class='app-button brackets-header-button brackets-header-button-left app-button-active' disabled>Ongoing</div>
@@ -36,17 +37,17 @@ var BRACKET = {
 				// Bracket Min
 				let startDate = '';
 				let winCounts = null;
-				if (bracket.matches && bracket.matches.length && bracket.matches.length > 0) {
+				if (bracket && bracket.matches && bracket.matches.length && bracket.matches.length > 0) {
 					startDate = bracket.matches.map((match) => match.start).reduce((a, b) => (new Date(a) < new Date(b) ? a : b));
 					startDate = formatDate(startDate) + ' ' + formatTime(startDate);
 
 					// Count wins for each team
-					winCounts = bracket.matches
-						.flatMap((match) => match.games.map((game) => game.winner))
-						.reduce((acc, winnerId) => {
-							acc[winnerId] = (acc[winnerId] || 0) + 1;
-							return acc;
-						}, {});
+					// winCounts = bracket.matches
+					// 	.flatMap((match) => match.games.map((game) => game.winner))
+					// 	.reduce((acc, winnerId) => {
+					// 		acc[winnerId] = (acc[winnerId] || 0) + 1;
+					// 		return acc;
+					// 	}, {});
 				}
 
 				// Find the team with the most wins
@@ -188,34 +189,6 @@ var BRACKET = {
 		},
 		remove: function (playerName) {},
 	},
-	match: {
-		create: function (bracketID, player1, player2) {
-			// Check Params
-			if (isEmpty(bracketID) || isEmpty(player1) || isEmpty(player2)) {
-				return;
-			}
-
-			// Check Bracket
-			const bracket = BRACKET.brackets.find((b) => b.id === bracketID);
-			if (bracket && bracket.length && bracket.length > 0) {
-				bracket = bracket[0];
-			}
-			if (!bracket || bracket.id != bracketID) {
-				return;
-			}
-
-			// Get Matches
-			const matches = bracket.matches;
-
-			const match = {
-				id: 0,
-				player1: player1,
-				player2: player2,
-				games: [{ score: [0, 0], winner: null }],
-			};
-		},
-		winner: function (matchID, playerID) {},
-	},
 	setInputs: function () {
 		const bracketID = STORAGE.get('bracket-id');
 
@@ -245,21 +218,17 @@ var BRACKET = {
 
 		// Add Team
 		const addTeamButton = document.getElementById('brackets-add-team');
-		addTeamButton.addEventListener('click', () => {
-			const list = document.getElementById('brackets-teams-list');
-			// Get Children where class = 'app-input-color'
-			const inputs = list.getElementsByClassName('app-input-color');
-			const teamID = inputs.length + 1;
-			const teamColor = BRACKET.colors[teamID - 1];
-			let newTeam = `<label class="app-box-label" for="bracket-team-${teamID}">Team ${teamID}</label>`;
-			newTeam += `<div class="app-box-value">
-				<input id="bracket-team-1-color" value="${teamColor}" type="color" class="app-input-color">
-				<input id="bracket-team-1" value="" placeholder="Team ${teamID}" type="text" list="list-brackets-team" class="app-input">
-			</div>
-			<div class="app-box-note"><div id="braket-team-${teamID}-add" class="brackets-member-add">+ Add Members</div></div>`;
+		if (addTeamButton) addTeamButton.addEventListener('click', BRACKET.team.add);
 
-			list.innerHTML += newTeam;
-		});
+		// Remove Team
+		const removeTeamButtons = document.querySelectorAll('.brackets-remove-team');
+		if (removeTeamButtons) {
+			removeTeamButtons.forEach((button) => {
+				button.addEventListener('click', () => {
+					BRACKET.team.remove(button.id.split('-')[2], 0);
+				});
+			});
+		}
 
 		// Inputs
 		const inputs = document.getElementsByClassName('app-input');
@@ -269,19 +238,65 @@ var BRACKET = {
 			});
 		});
 	},
-	bracket: {
-		update: function (bracketID = 0) {
-			// Fix Bracket Ids
-			if (isEmpty(bracketID) || bracketID == 0) {
-				let bid = 0;
-				BRACKET.brackets.forEach((bracket) => {
-					bid++;
-					bracket.id = bid;
-				});
-				bid++;
+	getID: function (prefix = 'B') {
+		const randomID = function () {
+			return prefix + Math.random().toString(36).substring(2, 10);
+		};
 
-				// Create Bracket
-				bracketID = bid;
+		let checkArray = BRACKET.brackets;
+		if (prefix == 'T' || prefix == 'M') {
+			const bracketID = STORAGE.get('bracket-id');
+			const bracket = BRACKET.brackets.find((b) => b.id == bracketID);
+			if (bracket) {
+				if (prefix == 'T') checkArray = bracket.teams;
+				if (prefix == 'M') checkArray = bracket.matches;
+			}
+		}
+
+		let newID = randomID();
+		if (checkArray && checkArray.length > 0) {
+			while (checkArray.find((t) => t.id == newID)) {
+				newID = randomID();
+			}
+		}
+
+		return newID;
+	},
+	team: {
+		add: function () {
+			const list = document.getElementById('brackets-teams-list');
+			const teamCount = list.getElementsByClassName('app-input').length;
+
+			const teamID = BRACKET.getID('T');
+
+			// New Team
+			let teamLabel = document.createElement('label');
+			teamLabel.innerHTML = `Team ${teamCount + 1}`;
+			teamLabel.classList.add('app-box-label');
+			teamLabel.setAttribute('for', 'bracket-team-' + teamID);
+			list.appendChild(teamLabel);
+
+			let teamValue = document.createElement('div');
+			teamValue.classList.add('app-box-value');
+			teamValue.innerHTML = `<input id="bracket-team-${teamID}-color" value="${BRACKET.colors[teamCount]}" type="color" class="app-input-color"><input id="bracket-team-${teamID}" value="Team ${teamCount + 1}" placeholder="Team ${teamCount + 1}" type="text" list="list-brackets-team" class="app-input">`;
+
+			list.appendChild(teamValue);
+		},
+		remove: function (teamID, confirm) {
+			if (!confirm) {
+				MESSAGE.confirm('Delete Team', `Are you sure you want to delete the team?<br><div class='line-center color-caution'>This cannot be undone.</div>`, () => BRACKET.team.remove(teamID, 1));
+				return;
+			}
+
+			BRACKET.settings.bracket.teams = BRACKET.settings.bracket.teams.filter((t) => t.id != teamID);
+			BRACKET.bracket.save();
+		},
+	},
+	bracket: {
+		update: function (bracketID = '') {
+			// Fix Bracket Ids
+			if (isEmpty(bracketID)) {
+				bracketID = BRACKET.getID('B');
 			}
 
 			const bracketTitle = getValue('bracket-title');
@@ -291,23 +306,27 @@ var BRACKET = {
 			// Teams
 			const bracketTeams = [];
 			let teamsCount = 0;
-			for (let t = 1; t <= 100; t++) {
-				let teamName = getValue('bracket-team-' + t);
-				let teamColor = getValue('bracket-team-' + t + '-color');
+			let teamInputs = document.querySelectorAll('input[id^="bracket-team-"]:not([id$="-color"])');
+			teamInputs.forEach((input) => {
+				let teamID = input.id.split('-')[2];
+				let teamName = getValue('bracket-team-' + teamID);
+				let teamColor = getValue('bracket-team-' + teamID + '-color');
+
 				if (!isEmpty(teamName)) {
 					teamsCount++;
+					const teamID = BRACKET.getID('T');
 					if (isEmpty(teamColor)) teamColor = BRACKET.colors[teamsCount];
-					bracketTeams.push({ id: teamsCount, name: teamName, color: teamColor, members: [] });
+					bracketTeams.push({ id: teamID, name: teamName, color: teamColor, members: [] });
 
 					// Add Members
 					for (let m = 1; m <= 20; m++) {
-						let memberName = getValue('bracket-team-' + t + '-member-' + m);
+						let memberName = getValue('bracket-team-' + teamID + '-member-' + m);
 						if (!isEmpty(memberName)) {
 							bracketTeams[teamsCount - 1].members.push(memberName);
 						}
 					}
 				}
-			}
+			});
 
 			if (isEmpty(bracketTitle) || teamsCount < 2) {
 				MESSAGE.error('Please fill out all required fields.');
@@ -342,31 +361,47 @@ var BRACKET = {
 				other: getValue('bracket-rule-other'),
 			};
 
-			console.log('R', parseInt(getValue('bracket-rule-matchlimit'), 10), bracket.rules);
-
 			// Teams
-			bracket.teams = bracketTeams; // teams: bracketTeams,
+			bracket.teams = bracketTeams;
 
 			// Matches
 			if (isEmpty(bracket.matches)) bracket.matches = [];
-			console.log('R2', parseInt(getValue('bracket-rule-matchlimit'), 10), bracket.rules);
 
 			// Check Bracket
 			if (BRACKET.brackets.some((b) => b.id == bracketID)) {
-				console.log(
-					'Update Bracket: ' + bracketID,
-					BRACKET.brackets.find((b) => b.id == bracketID)
-				);
-
 				BRACKET.brackets = BRACKET.brackets.map((oldbracket) => (oldbracket.id == bracketID ? bracket : oldbracket));
 			} else {
-				console.log('Create Bracket: ' + bracketID);
 				BRACKET.brackets.push(bracket);
 			}
 
 			// Save to storage
 			STORAGE.set('bracket-list', BRACKET.brackets);
 			BRACKET.bracket.load(bracketID);
+		},
+		save: function () {
+			// Saves Current Bracket
+
+			// Update Brackets
+			if (BRACKET.settings.bracket && BRACKET.settings.bracket.id) {
+				BRACKET.brackets.forEach((bracket) => {
+					if (bracket.id == BRACKET.settings.bracket.id) {
+						bracket = BRACKET.settings.bracket;
+					}
+				});
+			}
+
+			// Store Brackets
+			STORAGE.set('bracket-list', BRACKET.brackets);
+
+			// Return Bracket if Active
+			let bracket = null;
+			if (BRACKET.settings.bracket && BRACKET.settings.bracket.id) {
+				bracket = BRACKET.brackets.find((b) => b.id == BRACKET.settings.bracket.id);
+			}
+			if (bracket) {
+				BRACKET.bracket.load(BRACKET.settings.bracket.id);
+			}
+			return bracket;
 		},
 		delete: function (bracketID = '', confirmed = 0) {
 			if (!isEmpty(bracketID)) {
@@ -414,6 +449,8 @@ var BRACKET = {
 				bracketStatus = bracket.status;
 				bracketWinner = bracket.winner;
 				bracketGame = bracket.game;
+			} else {
+				bracketID = BRACKET.getID();
 			}
 
 			let ruleLimit = bracketRules.matchlimit;
@@ -431,38 +468,41 @@ var BRACKET = {
 			if (bracketFormat == 'bestof5') formatOptions = `<option value='bestof1'>Best of 1</option><option value='bestof3'>Best of 3</option><option value='bestof5' selected>Best of 5</option>`;
 
 			// Teams
-			let teamList = '';
 			if (bracketTeams.length == 0) {
-				bracketTeams.push({ id: 1, name: 'Team 1', color: BRACKET.colors[0], members: [] });
-				bracketTeams.push({ id: 2, name: 'Team 2', color: BRACKET.colors[1], members: [] });
+				bracketTeams.push({ id: BRACKET.getID('T'), name: 'Team 1', color: BRACKET.colors[0], members: [] });
+				bracketTeams.push({ id: BRACKET.getID('T'), name: 'Team 2', color: BRACKET.colors[1], members: [] });
 			}
+
+			let teamList = '';
 			if (bracketTeams.length > 0) {
 				for (let i = 0; i < bracketTeams.length; i++) {
 					const team = bracketTeams[i];
+					const teamID = team.id;
 
-					let teamInfo = `<label class='app-box-label' for='bracket-team-1'>Team ${i + 1}</label><div class='app-box-value'><input id='bracket-team-${i + 1}-color' value='${team.color}' type='color' class='app-input-color'><input id='bracket-team-${i + 1}' value='${team.name}' placeholder='Team ${i + 1}' type='text' list='list-brackets-team' required class='app-input'></div>`;
+					let teamInfo = `<label class='app-box-label' for='bracket-team-${teamID}'>Team ${i + 1}</label><div class='app-box-value'><input id='bracket-team-${teamID}-color' value='${team.color}' type='color' class='app-input-color'><input id='bracket-team-${teamID}' value='${team.name}' placeholder='Team ${i + 1}' type='text' list='list-brackets-team' required class='app-input'></div>`;
 
 					if (team.members.length > 0) {
 						teamInfo += `<div class='app-box-content app-box-span'>`;
 						for (let j = 0; j < bracketTeams[i].members.length; j++) {
 							let memberName = bracketTeams[i].members[j];
-							teamInfo += `<div class='app-box-label'>Member ${j + 1}</div><div class='app-box-value'><input id='bracket-team-${i + 1}-member-${j + 1}' value='${memberName}' placeholder='Member ${j + 1}' type='text' list='list-brackets-member' class='app-input'></div>`;
+							teamInfo += `<div class='app-box-label'>Member ${j + 1}</div><div class='app-box-value'><input id='bracket-team-${teamID}-member-${j + 1}' value='${memberName}' placeholder='Member ${j + 1}' type='text' list='list-brackets-member' class='app-input'></div>`;
 						}
 						teamInfo += `</div>`;
 					}
 
-					teamInfo += `<div class='app-box-note'><div id='braket-team-${i + 1}-add' class='brackets-member-add'>+ Add Members</div></div>`;
+					if (i > 1) {
+						teamInfo += `<div class='app-box-note'><div id="braket-team-${teamID}-remove" class="brackets-remove-team pointer">Remove</div></div>`;
+						//<div id='braket-team-${teamID}-add' class='brackets-member-add'>Edit Members</div> /
+					}
 
 					teamList += teamInfo;
 				}
 			}
 
-			// <label class='app-box-label' for='bracket-date'>Date</label><div class='app-box-value'><input id='bracket-date' type='date' value="${formatDate(bracketDate, 'YYYY-MM-DD')}"></div> <div class='app-box-note'>Date the Event is Held</div>
-
 			let content = `<div class='app-box-wrapper'>
 					<input id='bracket-id' type='hidden' value='${bracketID}'>
 					<div class='app-box-group no-border'><div class='app-box-content'>
-						<label class='app-box-label' for='bracket-title'>Title</label><div class='app-box-value'><input id='bracket-title' class='app-input' type='text' required list='list-brackets-title' value="${bracketTitle}"></div>
+						<label class='app-box-label' for='bracket-title'>* Title</label><div class='app-box-value'><input id='bracket-title' class='app-input' type='text' required list='list-brackets-title' value="${bracketTitle}"></div>
 						<div class='app-box-note'>Event Title used to identify the Bracket</div>
 
 						<label class='app-box-label' for='bracket-elimination'>E-Type</label><div class='app-box-value'><select id='bracket-elimination' >${eliminationOptions}</select></div>
@@ -473,7 +513,7 @@ var BRACKET = {
 					</div></div>
 
 					<div class='app-box-group no-border'><div class='app-box-content'>
-						<label class='app-box-label' for='bracket-title'>Game</label><div class='app-box-value'><input id='bracket-game' class='app-input' type='text' list='list-brackets-game' value="${bracketGame}"></div>
+						<label class='app-box-label' for='bracket-title'>* Game</label><div class='app-box-value'><input id='bracket-game' class='app-input' type='text' list='list-brackets-game' value="${bracketGame}"></div>
 						<div class='app-box-note'>Event Game being played</div>
 
 						<label class='app-box-label' for='bracket-organizer'>Organizer</label><div class='app-box-value'><input id='bracket-organizer' type='text' list='list-brackets-organizer' value="${bracketOrganizer}"></div>
@@ -572,123 +612,308 @@ var BRACKET = {
 			// Load Bracket
 
 			const bracket = BRACKET.brackets.find((b) => b.id == bracketID);
+			BRACKET.settings.bracket = bracket;
 			STORAGE.set('bracket-id', bracketID);
 
+			let info = `<div id='bracket-data'>`;
+			if (!isEmpty(bracket.game)) info += `<div class='bracket-label'>Game</div><div class='bracket-value'>${bracket.game}</div>`;
+			if (!isEmpty(bracket.date)) info += `<div class='bracket-label'>Date</div><div class='bracket-value'>${bracket.date}</div>`;
+			if (!isEmpty(bracket.location)) info += `<div class='bracket-label'>Location</div><div class='bracket-value'>${bracket.location}</div>`;
+			if (!isEmpty(bracket.organizer)) info += `<div class='bracket-label'>Organizer</div><div class='bracket-value'>${bracket.organizer}</div>`;
+			info += `<div class='bracket-label'>Teams</div><div class='bracket-value'>${bracket.teams.length}</div>`;
+
+			// Rules
+			const matchlimit = bracket.rules.matchlimit;
+			const wincondition = bracket.rules.wincondition;
+			const tiebreaker = bracket.rules.tiebreaker;
+			const otherrules = bracket.rules.other;
+			if (matchlimit > 0 || !isEmpty(wincondition) || !isEmpty(tiebreaker) || !isEmpty(otherrules)) {
+				info += `<div class='bracket-label-large'>Rules</div>`;
+				if (matchlimit > 0) info += `<div class='bracket-label'>Match Limit</div><div class='bracket-value'>${matchlimit} minutes</div>`;
+				if (!isEmpty(wincondition)) info += `<div class='bracket-label'>Conditions</div><div class='bracket-value'>${wincondition} </div>`;
+				if (!isEmpty(tiebreaker)) info += `<div class='bracket-label'>Tiebreaker</div><div class='bracket-value'>${tiebreaker} </div>`;
+				if (!isEmpty(otherrules)) info += `<div class='bracket-label'>Other Rules</div><div class='bracket-value'>${otherrules} </div>`;
+			}
+			info += `</div>`;
+
 			// Title
-			let content = `<h2 class='flex-row' style='gap:16px;'>
-					<div id='brackets-back' class='app-button app-button-small justify-center' style='min-width:80px;'>Home</div>
-					Bracket: ${bracket.title}
-					<div id='brackets-edit' class='app-button app-button-small app-icon app-icon-small app-icon-edit' style='background-color:transparent;'></div>
-				</h2>
+			let content = `
+				<div id="bracket-body">
+					<div id="bracket-info">
+						<h2 class='flex-row' style='gap:16px;flex:0;'>
+							<div id='brackets-home' class='app-button app-button-small app-icon app-icon-small app-icon-home app-button-hover'></div>${bracket.title}
+						</h2>
+						<div style='flex:1;'>${info}</div>
+						<div class='app-box-span' style='flex:0;width:100%;margin-top:8px;'>
+							<div id='brackets-edit' class=' app-button app-button-small'><div class='app-button-icon app-icon-edit'></div><div class='app-button-text'>Edit Bracket</div></div>
+						</div>
+					</div>
+					<div id="bracket-visual">
+						<canvas id="bracket-canvas" width="${(screenWidth / 3) * 2}" height="${screenHeight - 120}"></canvas>
+					</div>
+				</div>`;
 
-				<div id="bracket-visual">
-					<canvas id="bracket-canvas" width="${screenWidth}" height="${screenHeight}"></canvas>
-				</div>
-
-				<div id='bracket-details' class='flex-column app-block app-hidden app-popup' style='margin:0;opacity:0;'>
+			// Edit
+			content += `
+				<div id='bracket-edit' class='flex-column app-block app-hidden app-popup' style='margin:0;opacity:0;'>
 					<div class='app-popup-head'> Edit Bracket<div class='app-popup-close'></div></div>
 					<div class='app-popup-body'>${BRACKET.bracket.form(bracket.id)}</div>
 					<div class='app-popup-controls'>
 						<div id='bracket-update' class='app-button app-button-small' style='min-width:100px;'>Save</div>
 						<div id='bracket-delete' class='app-button app-button-caution app-button-small' style='min-width:100px;'>Delete</div>
 					</div>
-				</div>`;
+				</div>
+			`;
 
+			// content += `<div class='selectable'>${JSON.stringify(bracket, null, 2)}</div>`;
 			document.getElementById('brakets-content').innerHTML = content;
 
-			// Controls
-			const backButton = document.getElementById('brackets-back');
-			backButton.addEventListener('click', () => {
-				BRACKET.home();
-			});
-			const editButton = document.getElementById('brackets-edit');
-			editButton.addEventListener('click', () => {
-				POPUP.toggle('bracket-details');
-			});
+			setTimeout(() => {
+				// Canvas
+				const canvas = document.getElementById('bracket-canvas');
+				const canvasWidth = document.getElementById('bracket-visual').clientWidth || document.getElementById('bracket-visual').style.width;
+				const canvasHeight = document.getElementById('bracket-visual').clientHeight || document.getElementById('bracket-visual').style.height;
 
-			// Inputs
-			BRACKET.setInputs();
+				canvas.width = canvasWidth;
+				canvas.height = canvasHeight;
 
-			// Canvas
-			const canvas = document.getElementById('bracket-canvas');
-			const ctx = canvas.getContext('2d');
-			let winner = 0;
+				// Inputs
+				BRACKET.setInputs();
+				// let winner = 0;
+
+				// Constants for layout
+				// const startX = 50;
+				// const startY = 100;
+				// const boxWidth = 120;
+				// const boxHeight = 40;
+				// const spacingY = 80; // Adjust spacing dynamically
+
+				// Handle click events to select the winner
+				// canvas.addEventListener('click', function (event) {
+				// 	const rect = canvas.getBoundingClientRect();
+				// 	const clickX = event.clientX - rect.left;
+				// 	const clickY = event.clientY - rect.top;
+
+				// 	// Click detection for final winner box
+				// 	let finalX = startX + Math.ceil(Math.log2(bracket.teams.length)) * (boxWidth + 50) + 50;
+				// 	let finalY = startY + (bracket.teams.length / 2) * spacingY;
+
+				// 	if (clickX >= finalX && clickX <= finalX + boxWidth && clickY >= finalY - boxHeight / 2 && clickY <= finalY + boxHeight / 2) {
+				// 		winner = (winner + 1) % (bracket.teams.length + 1);
+				// 		BRACKET.canvas.load(bracketID);
+				// 	}
+				// });
+
+				// Controls
+				const backButton = document.getElementById('brackets-home');
+				backButton.addEventListener('click', BRACKET.home);
+				const editButton = document.getElementById('brackets-edit');
+				editButton.addEventListener('click', () => {
+					POPUP.toggle('bracket-edit');
+				});
+
+				// Draw bracket on load
+				BRACKET.canvas.load(bracketID);
+			}, 200);
+		},
+	},
+	match: {
+		create: function (bracketID) {
+			if (isEmpty(bracketID)) return;
+			const bracket = BRACKET.brackets.find((b) => b.id == bracketID);
+			if (!bracket) return;
+
+			const teams = bracket.teams;
+			const numTeams = teams.length;
+			if (numTeams < 2) return;
+
+			let matches = [];
+			let teamsArray = [...teams];
+
+			// Shuffle the teams array
+			for (let i = teamsArray.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[teamsArray[i], teamsArray[j]] = [teamsArray[j], teamsArray[i]];
+			}
+
+			// Select Two Teams at random and create a match
+			// loop through teamsArray and pair the first two teams
+			while (teamsArray.length > 1) {
+				const team1 = teamsArray.shift();
+				const team2 = teamsArray.shift();
+
+				const match = {
+					id: BRACKET.getID('M'),
+					team1: team1.id,
+					team2: team2.id,
+					winner: null,
+					start: null,
+					end: null,
+					parent: null,
+				};
+				matches.push(match);
+			}
+
+			// If there's an odd team out, handle it separately
+			if (teamsArray.length === 1) {
+				matches.push({
+					id: BRACKET.getID('M'),
+					team1: teamsArray[0].id,
+					team2: null, // No opponent
+					winner: teamsArray[0].id, // Auto-advance
+					start: null,
+					end: null,
+					parent: null,
+				});
+			}
+			bracket.matches = matches;
+
+			BRACKET.settings.bracket = bracket;
+			BRACKET.bracket.save();
+		},
+	},
+	canvas: {
+		load: function (bracketID) {
+			if (isEmpty(bracketID)) return;
+			const bracket = BRACKET.brackets.find((b) => b.id == bracketID);
+			if (!bracket) return;
+
+			// Setup Matches
+			const teams = bracket.teams;
+			const matches = bracket.matches;
+			if (matches.length == 0) BRACKET.match.create(bracketID);
+			if (matches.length == 0) return;
+
+			const numTeams = teams.length;
+			const rounds = Math.ceil(Math.log2(numTeams)); // Number of rounds needed
 
 			const startX = 50;
 			const startY = 100;
 			const boxWidth = 120;
 			const boxHeight = 40;
-			const spacingY = 100;
-			const winnerX = startX + boxWidth + 100;
-			const winnerY = startY + spacingY / 2;
+			const matchSpacingY = 140; // Adjust spacing dynamically
+			const blockSpacingY = 60;
+			const lineWidth = 2;
+			const fontStyle = '16px Nunito';
 
-			function drawBracket() {
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
+			// Canvas
+			const canvas = document.getElementById('bracket-canvas');
+			const canvasWidth = document.getElementById('bracket-visual').clientWidth || document.getElementById('bracket-visual').style.width;
+			const canvasHeight = document.getElementById('bracket-visual').clientHeight || document.getElementById('bracket-visual').style.height;
 
-				// Draw team boxes
-				bracket.teams.forEach((team, index) => {
-					let yPos = startY + index * spacingY;
+			canvas.width = canvasWidth;
+			canvas.height = canvasHeight;
+			const ctx = canvas.getContext('2d');
+			ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear Canvas
 
-					// Draw box with white border and rounded corners
-					ctx.fillStyle = team.color;
-					ctx.strokeStyle = 'white';
-					ctx.lineWidth = 2;
-					ctx.beginPath();
-					ctx.rect(startX, yPos, boxWidth, boxHeight);
-					ctx.fill();
-					ctx.stroke();
-
-					// Draw text
-					ctx.fillStyle = 'white';
-					ctx.font = '16px Arial';
-					ctx.fillText(team.name, startX + 10, yPos + 25);
-				});
-
-				// Draw match lines
-				ctx.strokeStyle = 'white';
-				ctx.lineWidth = 2;
+			const createBox = function (ctx, xPos, yPos, fillColor, strokeColor, boxText = '') {
+				ctx.fillStyle = fillColor;
+				ctx.strokeStyle = strokeColor;
+				ctx.lineWidth = lineWidth;
 				ctx.beginPath();
-				ctx.moveTo(startX + boxWidth, startY + 20);
-				ctx.lineTo(startX + boxWidth + 50, startY + 20);
-				ctx.lineTo(startX + boxWidth + 50, startY + spacingY + 20);
-				ctx.lineTo(startX + boxWidth, startY + spacingY + 20);
-				ctx.stroke();
-
-				// Draw winner box
-				let winnerColor = winner === 1 ? bracket.teams[0].color : winner === 2 ? bracket.teams[1].color : '#333';
-				ctx.fillStyle = winnerColor;
-				ctx.strokeStyle = 'white';
-				ctx.beginPath();
-				ctx.rect(winnerX, winnerY, boxWidth, boxHeight);
+				ctx.rect(xPos, yPos, boxWidth, boxHeight);
 				ctx.fill();
 				ctx.stroke();
 
-				// Draw winner text
-				ctx.fillStyle = 'white';
-				ctx.fillText(winner === 1 ? bracket.teams[0].name : winner === 2 ? bracket.teams[1].name : '', winnerX + 10, winnerY + 25);
+				// Draw text
+				ctx.fillStyle = strokeColor;
+				ctx.font = fontStyle;
+				ctx.fillText(boxText, startX + 10, yPos + 25);
+			};
 
-				// Connect match lines to winner box
-				ctx.beginPath();
-				ctx.moveTo(startX + boxWidth + 50, startY + 20 + spacingY / 2);
-				ctx.lineTo(winnerX, winnerY + boxHeight / 2);
-				ctx.stroke();
-			}
+			matches.forEach((match, index) => {
+				const team1 = bracket.teams.find((t) => t.id == match.team1);
+				const team2 = bracket.teams.find((t) => t.id == match.team2);
 
-			canvas.addEventListener('click', function (event) {
-				const rect = canvas.getBoundingClientRect();
-				const clickX = event.clientX - rect.left;
-				const clickY = event.clientY - rect.top;
+				console.log('M', match);
+				console.log('T1', team1);
+				console.log('T2', team2);
 
-				const winnerX = startX + boxWidth + 100;
-				const winnerY = startY + spacingY / 2;
+				// Defaults
+				let fillColor = 'black';
+				let strokeColor = 'white';
 
-				if (clickX >= winnerX && clickX <= winnerX + boxWidth && clickY >= winnerY && clickY <= winnerY + boxHeight) {
-					winner = (winner + 1) % 3;
-					drawBracket();
+				// Team 1 Box
+				let xPos = startX;
+				let yPos = startY + index * matchSpacingY;
+				if (team1 && team1.name) {
+					fillColor = team1.color;
 				}
+
+				console.log('T1', team1.name, yPos);
+				console.log('T2', team2.name, yPos + blockSpacingY);
+
+				// Team 1
+				createBox(ctx, xPos, yPos, team1.color, strokeColor, team1.name);
+
+				// Team 2
+				createBox(ctx, xPos, yPos + blockSpacingY, ifEmpty(team2.color, 'grey'), strokeColor, ifEmpty(team2.name, '-')); // Fill with black if team2 is null or undefined
 			});
 
-			drawBracket();
+			// Draw initial team boxes
+			// teams.forEach((team, index) => {
+			// 	let yPos = startY + index * matchSpacingY;
+
+			// 	// Draw box
+			// 	ctx.fillStyle = team.color;
+			// 	ctx.strokeStyle = 'white';
+			// 	ctx.lineWidth = 2;
+			// 	ctx.beginPath();
+			// 	ctx.rect(startX, yPos, boxWidth, boxHeight);
+			// 	ctx.fill();
+			// 	ctx.stroke();
+
+			// 	// Draw text
+			// 	ctx.fillStyle = 'white';
+			// 	ctx.font = '16px Nunito';
+			// 	ctx.fillText(team.name, startX + 10, yPos + 25);
+			// });
+
+			// // Draw match lines and next rounds
+			// let prevPositions = roundPositions;
+			// let roundX = startX + boxWidth + 50;
+
+			// for (let round = 1; round < rounds; round++) {
+			// 	let newPositions = [];
+			// 	for (let i = 0; i < prevPositions.length; i += 2) {
+			// 		let y1 = prevPositions[i].y;
+			// 		let y2 = prevPositions[i + 1]?.y || y1;
+			// 		let midY = (y1 + y2) / 2;
+
+			// 		// Draw connecting lines
+			// 		ctx.strokeStyle = 'white';
+			// 		ctx.lineWidth = 2;
+			// 		ctx.beginPath();
+			// 		ctx.moveTo(prevPositions[i].x, y1);
+			// 		ctx.lineTo(roundX - 50, y1);
+			// 		ctx.lineTo(roundX - 50, y2);
+			// 		ctx.lineTo(roundX, midY);
+			// 		ctx.stroke();
+
+			// 		// Draw winner box for the round
+			// 		ctx.fillStyle = '#333';
+			// 		ctx.beginPath();
+			// 		ctx.rect(roundX, midY - boxHeight / 2, boxWidth, boxHeight);
+			// 		ctx.fill();
+			// 		ctx.stroke();
+
+			// 		newPositions.push({ x: roundX + boxWidth, y: midY });
+			// 	}
+			// 	prevPositions = newPositions;
+			// 	roundX += boxWidth + 50;
+			// }
+
+			// // Draw final winner box
+			// let finalX = roundX + 50;
+			// let finalY = prevPositions[0]?.y || startY;
+			// ctx.fillStyle = winner ? bracket.teams[winner - 1].color : '#555';
+			// ctx.beginPath();
+			// ctx.rect(finalX, finalY - boxHeight / 2, boxWidth, boxHeight);
+			// ctx.fill();
+			// ctx.stroke();
+
+			// ctx.fillStyle = 'white';
+			// ctx.fillText(winner ? bracket.teams[winner - 1].name : '', finalX + 10, finalY + 10);
 		},
 	},
 	unload: function () {
